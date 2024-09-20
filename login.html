@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+ <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Tarefas com Firebase e Autenticação</title>
+     <link rel="stylesheet" href="style.css">
+     <script src="script.js"></script>
+  </head>
+
+ <body>
+    <!-- Container de Autenticação -->
+    <div id="authContainer">
+        <h2>Orçamento </h2>
+        <form id="formLogin">
+            <input type="email" id="inputEmail" placeholder="Digite seu e-mail" required>
+            <input type="password" id="inputSenha" placeholder="Digite sua senha" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <p>Não tem uma conta? <button id="botaoCadastro">Cadastre-se</button></p>
+    </div>
+
+
+
+     <!-- Container do CRUD de Tarefas -->
+    <div id="crudContainer" style="display:none;">
+        <form id="formTarefa">
+            <h2>Adicionar Item</h2>
+            <input type="text" id="inputTarefa" placeholder="Digite uma tarefa" required>
+
+            <button type="submit">Adicionar Item</button>
+            <h3>Total: R$ <span id="totalValor">0.00</span></h3>
+        </form>
+
+        <div id="tarefas">
+            <h2>Item</h2>
+            <div id="containerTarefas">
+
+                <!-- Tarefas serão exibidas aqui -->
+            </div>
+
+
+        </div>
+
+        <button id="botaoLogout">Sair</button>
+    </div>
+
+    <!-- Importando SDKs do Firebase <script type="module"> -->
+     
+     
+    
+
+
+
+ </body>
+
+</html>
