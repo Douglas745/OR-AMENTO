@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamentos com Firebase e Autenticação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /*background: url(https://www.publicitarioscriativos.com/wp-content/uploads/2019/07/Ideias-de-publicidade-para-orc%CC%A7amentos-apertados.png);*/
+            background: url(https://images.unsplash.com/photo-1543286386-2e659306cd6c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            color: #E0E0E0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            background-color: #000000;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .form-container a {
+            font-size: 16px;
+            color: #fff;
+            text-decoration: none;
+
+        }
+
+        .form-container a:hover {
+            text-decoration: underline;
+        }
+
+
+        h1 {
+            color: #eff7ed;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #ffffff;
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            background-color: #333;
+            color: #E0E0E0;
+        }
+
+        button {
+            background-color: #6200EE;
+            color: #E0E0E0;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #48097c;
+            color: white;
+        }
+
+
+        .budget-container,
+        .item-container {
+            background-color: #1F1F1F;
+            border-radius: 8px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .budget-item,
+        .item {
+            background-color: #2C2C2C;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .budget-item h3,
+        .item h3 {
+            margin: 0 0 10px;
+            color: #E0E0E0;
+        }
+
+        .budget-item p,
+        .item p {
+            margin: 5px 0;
+            color: #B0B0B0;
+        }
+
+        .btn-delete {
+            position: absolute;
+            right: 2px;
+            background-color: #FF5722;
+            color: #E0E0E0;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-delete:hover {
+            background-color: #e62719;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #1F1F1F;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15% auto;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-content input {
+            background-color: #333;
+            color: #E0E0E0;
+        }
+
+        .close {
+            color: #E0E0E0;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #ffffff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .form-container,
+            .budget-container,
+            .item-container,
+            .modal-content {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+
+        img {
+            width: 50px;
+            background-color: #6200EE;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 50px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Container de autenticação -->
+        <div id="authContainer" class="form-container">
+            <h1><b>Orçamentos</b></h1>
+            <h4> Bem-vindo!</h4>
+            <form id="formLogin">
+                <input type="email" id="inputEmail" placeholder="E-mail" required />
+                <input type="password" id="inputSenha" placeholder="Senha" required>
+                <a href="#">Esqueci minha senha?</a>
+                <br><br>
+                <button type="submit">Entrar</button>
+            </form>
+            <button id="botaoCadastro">Cadastrar-se</button>
+        </div>
+
+        <!-- Container de CRUD de orçamentos -->
+        <div id="crudContainer" style="display: none;">
+            <div class="img">
+                <img src="user.png" id="user1"><br><br>
+                <h2 id="userEmail" color="black"></h2><br><br>
+            </div>
+            <h1>Adicionar Novo Orçamento</h1>
+            <form id="formOrcamento" class="form-container">
+                <input type="text" id="inputNomeOrcamento" placeholder="Nome do Orçamento" required>
+                <input type="date" id="inputDataOrcamento" required>
+                <button type="submit">Adicionar Orçamento</button>
+            </form>
+
+            <h2>Orçamentos</h2><br><br>
+            <div id="containerOrcamentos" class="budget-container"></div><br><br>
+            <button id="botaoLogout">Logout</button>
+        </div>
+    </div>
+
+
+    <!-- Modal para Edição de Orçamento -->
+    <div id="modalEdicaoOrcamento" class="modal">
+        <div class="modal-content">
+            <span class="close" id="fecharModalEdicao">&times;</span>
+            <h1>Editar Orçamento</h1>
+            <form id="formEditOrcamento">
+                <input type="hidden" id="inputOrcamentoId">
+                <input type="text" id="inputEditNomeOrcamento" placeholder="Nome do Orçamento" required>
+                <input type="date" id="inputEditDataOrcamento" required>
+                <button type="submit">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Itens ao Orçamento -->
+    <div id="modalAdicionarItem" class="modal">
+        <div class="modal-content">
+            <span class="close" id="fecharModalAdicionarItem">&times;</span>
+            <h1>Adicionar Item ao Orçamento</h1>
+            <form id="formAdicionarItem">
+                <input type="hidden" id="inputOrcamentoIdItem">
+                <input type="text" id="inputNomeItem" placeholder="Nome do Item" required>
+                <input type="number" id="inputQuantidadeItem" step="1" min="1" placeholder="Quantidade" required>
+                <input type="number" id="inputValorItem" step="0.01" placeholder="Valor do Item" required>
+                <button type="submit">Adicionar Item</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+        // Configurações do Firebase
+        const configuracaoFirebase = {
+            apiKey: "AIzaSyAzgzdAXxswUjI3muUc0DYa3Sf4zY96uiE",
+            authDomain: "lista-ebf73.firebaseapp.com",
+            databaseURL: "https://lista-ebf73-default-rtdb.firebaseio.com",
+            projectId: "lista-ebf73",
+            storageBucket: "lista-ebf73.appspot.com",
+            messagingSenderId: "13759953425",
+            appId: "1:13759953425:web:68a3a233247cef4dde8fb0"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(configuracaoFirebase);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let usuarioAtual = null;
+
+        // Função de autenticação de usuários
+        document.getElementById('formLogin').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+            const email = document.getElementById('inputEmail').value;
+            const senha = document.getElementById('inputSenha').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, senha);
+                alert('Login bem-sucedido!');
+            } catch (erro) {
+                console.error('Erro ao fazer login:', erro);
+                alert('Erro ao fazer login. Verifique suas credenciais.');
+            }
+        });
+
+        // Função de cadastro de usuários
+        document.getElementById('botaoCadastro').addEventListener('click', async function () {
+            const email = prompt('Digite o e-mail para cadastro:');
+            const senha = prompt('Digite a senha para cadastro:');
+            if (email && senha) {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, senha);
+                    alert('Usuário cadastrado com sucesso!');
+                } catch (erro) {
+                    console.error('Erro ao cadastrar usuário:', erro);
+                    alert('Erro ao cadastrar usuário.');
+                }
+            }
+        });
+
+        // Função de logout
+        document.getElementById('botaoLogout').addEventListener('click', async function () {
+            try {
+                await signOut(auth);
+                alert('Logout realizado com sucesso!');
+            } catch (erro) {
+                console.error('Erro ao fazer logout:', erro);
+                alert('Erro ao fazer logout.');
+            }
+        });
+
+        // Função para verificar o estado de autenticação do usuário
+        onAuthStateChanged(auth, (usuario) => {
+            usuarioAtual = usuario;
+            if (usuario) {
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('crudContainer').style.display = 'block';
+                carregarOrcamentos();
+            } else {
+                document.getElementById('authContainer').style.display = 'block';
+                document.getElementById('crudContainer').style.display = 'none';
+            }
+        });
+
+        // Função para adicionar um orçamento
+        document.getElementById('formOrcamento').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+            const nome = document.getElementById('inputNomeOrcamento').value;
+            const data = document.getElementById('inputDataOrcamento').value;
+            if (usuarioAtual) {
+                try {
+                    await addDoc(collection(db, 'orcamentos'), {
+                        nome,
+                        data,
+                        usuarioId: usuarioAtual.uid
+                    });
+                    alert('Orçamento adicionado com sucesso!');
+                    carregarOrcamentos();
+                    document.getElementById('formOrcamento').reset(); // Limpar formulário
+                } catch (erro) {
+                    console.error('Erro ao adicionar orçamento:', erro);
+                    alert('Erro ao adicionar orçamento.');
+                }
+            }
+        });
+
+        // Função para carregar orçamentos
+        async function carregarOrcamentos() {
+            const containerOrcamentos = document.getElementById('containerOrcamentos');
+            containerOrcamentos.innerHTML = '';
+            if (usuarioAtual) {
+                const orcamentosRef = collection(db, 'orcamentos');
+                const q = query(orcamentosRef, where('usuarioId', '==', usuarioAtual.uid));
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const divOrcamento = document.createElement('div');
+                    divOrcamento.classList.add('budget-item');
+                    divOrcamento.innerHTML = `
+                        <h3>${data.nome}</h3>
+                        <p>Data: ${data.data}</p>
+                        <button onclick="editarOrcamento('${doc.id}', '${data.nome}', '${data.data}')">Editar</button>
+                        <button onclick="adicionarItem('${doc.id}')">Adicionar Item</button>
+						<button onclick="excluirOrcamento('${doc.id}')">Excluir Orçamento</button>
+                        <div id="containerItens-${doc.id}" class="item-container"></div>
+                    `;
+                    containerOrcamentos.appendChild(divOrcamento);
+                    carregarItens(doc.id);
+                });
+            }
+        }
+
+        // Função para adicionar um item ao orçamento
+        document.getElementById('formAdicionarItem').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+            const orcamentoId = document.getElementById('inputOrcamentoIdItem').value;
+            const nomeItem = document.getElementById('inputNomeItem').value;
+            const quantidade = parseInt(document.getElementById('inputQuantidadeItem').value);
+            const valorItem = parseFloat(document.getElementById('inputValorItem').value);
+            if (usuarioAtual) {
+                try {
+                    await addDoc(collection(db, 'itens'), {
+                        orcamentoId,
+                        nomeItem,
+                        quantidade,
+                        valorItem
+                    });
+                    alert('Item adicionado com sucesso!');
+                    document.getElementById('modalAdicionarItem').style.display = 'none';
+                    document.getElementById('formAdicionarItem').reset(); // Limpar formulário
+                    carregarItens(orcamentoId);
+                } catch (erro) {
+                    console.error('Erro ao adicionar item:', erro);
+                    alert('Erro ao adicionar item.');
+                }
+            }
+        });
+
+        // Função para carregar itens de um orçamento
+        async function carregarItens(orcamentoId) {
+            const containerItens = document.getElementById(`containerItens-${orcamentoId}`);
+            containerItens.innerHTML = '';
+            const itensRef = collection(db, 'itens');
+            const q = query(itensRef, where('orcamentoId', '==', orcamentoId));
+            const querySnapshot = await getDocs(q);
+            let totalOrcamento = 0;
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const valorTotalItem = data.quantidade * data.valorItem;
+                totalOrcamento += valorTotalItem;
+                const divItem = document.createElement('div');
+                divItem.classList.add('item');
+                divItem.innerHTML = `
+                    <h3>${data.nomeItem}</h3>
+                    <p>Quantidade: ${data.quantidade}</p>
+                    <p>Valor Unitário: R$ ${data.valorItem.toFixed(2)}</p>
+                    <p>Valor Total: R$ ${valorTotalItem.toFixed(2)}</p>
+                    <button class="btn-delete" onclick="excluirItem('${doc.id}', '${orcamentoId}')">Excluir</button>
+                `;
+                containerItens.appendChild(divItem);
+            });
+            const divTotal = document.createElement('div');
+            divTotal.classList.add('item');
+            divTotal.innerHTML = `<h3>Total do Orçamento: R$ ${totalOrcamento.toFixed(2)}</h3>`;
+            containerItens.appendChild(divTotal);
+        }
+
+        // Função para excluir um item
+        window.excluirItem = async function (id, orcamentoId) {
+            try {
+                await deleteDoc(doc(db, 'itens', id));
+                alert('Item excluído com sucesso!');
+                carregarItens(orcamentoId);
+            } catch (erro) {
+                console.error('Erro ao excluir item:', erro);
+                alert('Erro ao excluir item.');
+            }
+        }
+
+        // Função para editar um orçamento
+        window.editarOrcamento = function (id, nome, data) {
+            document.getElementById('inputOrcamentoId').value = id;
+            document.getElementById('inputEditNomeOrcamento').value = nome;
+            document.getElementById('inputEditDataOrcamento').value = data;
+            document.getElementById('modalEdicaoOrcamento').style.display = 'flex';
+        }
+
+        // Evento para fechar o modal de edição de orçamento
+        document.getElementById('fecharModalEdicao').addEventListener('click', function () {
+            document.getElementById('modalEdicaoOrcamento').style.display = 'none';
+        });
+
+        // Evento para salvar alterações no orçamento
+        document.getElementById('formEditOrcamento').addEventListener('submit', async function (evento) {
+            evento.preventDefault();
+            const id = document.getElementById('inputOrcamentoId').value;
+            const nome = document.getElementById('inputEditNomeOrcamento').value;
+            const data = document.getElementById('inputEditDataOrcamento').value;
+            try {
+                await updateDoc(doc(db, 'orcamentos', id), {
+                    nome,
+                    data
+                });
+                alert('Orçamento atualizado com sucesso!');
+                document.getElementById('modalEdicaoOrcamento').style.display = 'none';
+                carregarOrcamentos();
+            } catch (erro) {
+                console.error('Erro ao atualizar orçamento:', erro);
+                alert('Erro ao atualizar orçamento.');
+            }
+        });
+
+        // Função para adicionar um item ao orçamento
+        window.adicionarItem = function (id) {
+            document.getElementById('inputOrcamentoIdItem').value = id;
+            document.getElementById('modalAdicionarItem').style.display = 'flex';
+        }
+
+        // Evento para fechar o modal de adicionar item
+        document.getElementById('fecharModalAdicionarItem').addEventListener('click', function () {
+            document.getElementById('modalAdicionarItem').style.display = 'none';
+        });
+
+        // Função para excluir um orçamento e todos os itens associados
+        window.excluirOrcamento = async function (id) {
+            const confirmacao = confirm('Tem certeza de que deseja excluir este orçamento e todos os itens associados?');
+            if (confirmacao) {
+                try {
+                    // Excluir itens associados
+                    const itensRef = collection(db, 'itens');
+                    const q = query(itensRef, where('orcamentoId', '==', id));
+                    const querySnapshot = await getDocs(q);
+                    querySnapshot.forEach(async (doc) => {
+                        await deleteDoc(doc.ref);
+                    });
+
+                    // Excluir o orçamento
+                    await deleteDoc(doc(db, 'orcamentos', id));
+                    alert('Orçamento excluído com sucesso!');
+                    carregarOrcamentos();
+                } catch (erro) {
+                    console.error('Erro ao excluir orçamento:', erro);
+                    alert('Erro ao excluir orçamento.');
+                }
+            }
+        }
+
+        // Função para exibir o e-mail do usuário logado
+        function mostrarUsuarioLogado() {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // Exibir o e-mail do usuário no campo #userEmail
+                    document.getElementById('userEmail').textContent = `Bem-vindo, ${user.email}`;
+                } else {
+                    // Se não houver usuário logado, limpar o campo ou exibir uma mensagem
+                    document.getElementById('user1').textContent = 'Nenhum usuário logado';
+                    document.getElementById('userEmail').textContent = 'Nenhum usuário logado';
+                }
+            });
+        }
+
+        // Chamar a função sempre que necessário (por exemplo, ao carregar a página ou ao fazer login)
+        mostrarUsuarioLogado();
+
+    </script>
+</body>
+
+</html>
